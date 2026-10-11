@@ -31,3 +31,16 @@ jobs:
           tags: |
             ghcr.io/decode-z0r0/gitops-demo-app:${{ steps.vars.outputs.short }}
             ghcr.io/decode-z0r0/gitops-demo-app:latest
+
+      - name: Update image tag in manifests repo
+        env:
+          TOKEN: ${{ secrets.MANIFESTS_TOKEN }}
+          TAG: ${{ steps.vars.outputs.short }}
+        run: |
+          git clone https://x-access-token:${TOKEN}@github.com/DECODE-z0r0/gitops-demo-manifests.git
+          cd gitops-demo-manifests
+          sed -i "s|image: ghcr.io/decode-z0r0/gitops-demo-app:.*|image: ghcr.io/decode-z0r0/gitops-demo-app:${TAG}|" apps/demo-app/deployment.yaml
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git commit -am "Deploy demo-app ${TAG}"
+          git push
